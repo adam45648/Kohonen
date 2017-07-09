@@ -1,19 +1,35 @@
 #include "SOMCluster.h"
 
-
-SOMCluster::SOMCluster(const unsigned int e, unique_ptr<NeighborhoodFunction> n, const int cc, const int d, bool un, string tl):
-	EPOCHS{e},
-	h{move(n)},
-	COUNT_CLUSTERS{cc},
-	DIMENSION{ d },
-	UPDATE_NEIGHBORHOOD{ un }
+SOMCluster::SOMCluster(const unsigned int EPOCHS_p, const unsigned int DIMENSION_p, const unsigned int COUNT_CLUSTERS_p, unique_ptr<NeighborhoodFunction> h_p) :
+	EPOCHS{EPOCHS_p},
+	DIMENSION{ DIMENSION_p },
+	COUNT_CLUSTERS{COUNT_CLUSTERS_p}
 {
-	W = vector<vector<long double>>(cc, vector<long double>(d, 0));
-	//W = make_unique<vector<vector<long double> > >(new vector<vector<long double> >(cc, vector<long double>(d) )); //2D array of vectors
+	h = move(h_p);
+	W = vector<vector<long double>>(COUNT_CLUSTERS, vector<long double>(DIMENSION, 0));
+	initRandomWeights();
+	UPDATE_NEIGHBORHOOD = true;
+	logger.turnOn(true);
+}
+
+SOMCluster::SOMCluster(const unsigned int EPOCHS_p, unique_ptr<NeighborhoodFunction> h_p, vector<vector<long double>> W_p):
+	EPOCHS{ EPOCHS_p },
+	DIMENSION{ W_p.size() },
+	COUNT_CLUSTERS{ W_p[0].size() }
+{
+	h = move(h_p);
+	W = W_p;
+	UPDATE_NEIGHBORHOOD = true;
+	logger.turnOn(true);
 }
 
 SOMCluster::~SOMCluster()
 {
+}
+
+void SOMCluster::setUpdateNeighborhood(bool t)
+{
+	UPDATE_NEIGHBORHOOD = t;
 }
 
 void SOMCluster::initRandomWeights() {
@@ -47,7 +63,7 @@ vector<vector<long double>> SOMCluster::train(vector<vector<long double>> patter
 
 			logger.addToLog("---------------------------------------------------------");
 			logger.addToLog("Wzorce: ");
-			printArray(patterns[i]);
+			logger.addVectorToLog(patterns[i]);
 
 			for (int j = 0; j < COUNT_CLUSTERS; j++) {
 				distances[j] = distance(W[j], patterns[i]);
@@ -56,15 +72,15 @@ vector<vector<long double>> SOMCluster::train(vector<vector<long double>> patter
 			int small = smallest(distances);
 
 			logger.addToLog("Macierz wag");
-	//		this.trainingLOG += Matrix.getMatrix(this.W);
-	//		this.trainingLOG += "\n";
+			logger.addVector2DToLog(W);
 	//		//Update the winner
 			for (int j = 0; j < DIMENSION; j++) {
 				W[small][j] = W[small][j] + ((1L / (long double)count_epoch)*
 					(patterns[i][j] - W[small][j]));
 			}
 
-	//		this.trainingLOG += "\nActualizado: " + small + " Peso: " + Arrays.toString(W[small]);
+			logger.addToLog("Aktualizacja: " + to_string(small) + " Waga: ");
+			logger.addVectorToLog(W[small]);
 
 	//		//Update losers
 			if (UPDATE_NEIGHBORHOOD) {
@@ -88,21 +104,11 @@ vector<vector<long double>> SOMCluster::train(vector<vector<long double>> patter
 		count_epoch++;
 	}
 	logger.addToLog("---------------------------------------------------------");
-	//this.trainingLOG += "\nPesos estabilizados";
-	//for (int i = 0; i < this.W.length; i++) {
-	//	this.trainingLOG += "\nPeso " + i + ": " + ArrayUtils.toString(this.W[i]);
-	//}
+	logger.addToLog("Wagi koñcowe:");
+	logger.addVector2DToLog(W);
+	logger.printLog();
 	return W;
 }
-
-void SOMCluster::printArray(vector<long double> printedArray)
-{
-	for (auto w : printedArray)
-	{
-		logger.addToLog(to_string(w));
-	}	
-}
-//https://github.com/yogonza524/SOM/tree/master/src/main/java/com/core/somcluster
 
 int SOMCluster::test(vector<long double> pattern) {
 	vector<long double> distances (COUNT_CLUSTERS);

@@ -50,12 +50,12 @@ void Logger::addVector2DToLog(std::vector<std::vector<long double>> printedArray
 {
 	if (isActive)
 	{
-		for (int i = 0; i < printedArray.size(); ++i)
+		for (int j = 0; j < printedArray[0].size(); ++j)
 		{
 			std::string s;
-			for (int j = 0; j < printedArray[i].size(); ++j)
+			for (int i = 0; i < printedArray.size(); ++i)
 			{
-				s += std::to_string(printedArray[j][i]) + "\t";
+				s += std::to_string(printedArray[i][j]) + "\t";
 				
 			}
 			addToLog(s);

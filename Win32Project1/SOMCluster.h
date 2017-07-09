@@ -9,20 +9,25 @@
 #include <math.h>
 #include <algorithm>
 #include "Logger.h"
+#include <utility>
 
 using namespace std;
 
 class SOMCluster
 {
 public:
-	SOMCluster(const unsigned int e, unique_ptr<NeighborhoodFunction> n, const int cc, const int d, bool un, string tl);
+
+	SOMCluster(const unsigned int EPOCHS_p, const unsigned int DIMENSION_p, const unsigned int COUNT_CLUSTERS_p, unique_ptr<NeighborhoodFunction> h_p);
+
+	SOMCluster(const unsigned int EPOCHS_p, unique_ptr<NeighborhoodFunction> h, vector<vector<long double>> W);
+
 	~SOMCluster();
+
+	void setUpdateNeighborhood(bool t);
 
 	void initRandomWeights();
 
 	vector<vector<long double>> train(vector<vector<long double>> patterns);
-
-	void printArray(vector<long double> printedArray);
 
 	int test(vector<long double> pattern);
 
@@ -34,8 +39,8 @@ private:
 	const unsigned int EPOCHS;
 	unique_ptr<NeighborhoodFunction> h;
 	vector<vector<long double>> W;
-	const int COUNT_CLUSTERS;
-	const int DIMENSION;
+	const unsigned int COUNT_CLUSTERS;
+	const unsigned int DIMENSION;
 	bool UPDATE_NEIGHBORHOOD;
 	Logger logger;
 };
